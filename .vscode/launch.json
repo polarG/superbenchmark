@@ -2,6 +2,66 @@
   "version": "0.2.0",
   "configurations": [
     {
+      "name": "Python Debugger: summary",
+      "type": "debugpy",
+      "request": "launch",
+      "env": {
+        "PYTHONPATH": "${workspaceRoot}"
+      },
+      "program": "${workspaceFolder}/superbench/cli/sb.py",
+      "args": [
+        "result",
+        "summary",
+        "--data-file",
+        "/mnt/c/hongtao/workspace/log/sb/sb-mix/outputs/2024-09-17_03-40-24/results-summary.jsonl",
+        "--rule-file",
+        "/mnt/c/hongtao/workspace/log/sb/rule.yaml",
+        // "--diagnosis-rule-file",
+        // "",
+        // "--output-dir",
+        // ""
+      ]
+    },
+    {
+      "name": "Python Debugger: diagnosis",
+      "type": "debugpy",
+      "request": "launch",
+      "env": {
+        "PYTHONPATH": "${workspaceRoot}"
+      },
+      "program": "${workspaceFolder}/superbench/cli/sb.py",
+      "args": [
+        "result",
+        "diagnosis",
+        "--data-file",
+        "/mnt/c/hongtao/workspace/log/sb-log/outputs/2024-09-10_23-50-40/results-summary.jsonl",
+        "--rule-file",
+        "/mnt/c/hongtao/workspace/log/sb-log/config/rules.yaml",
+        // "--diagnosis-rule-file",
+        // "",
+        // "--output-dir",
+        // ""
+      ]
+    },
+    {
+      "name": "Python Debugger: generate-baseline",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${workspaceFolder}/superbench/cli/sb.py",
+      "args": [
+        "result",
+        "generate-baseline",
+        "--data-file",
+        "/mnt/c/hongtao/workspace/log/sb-log/outputs/2024-09-10_23-50-40/results-summary.jsonl",
+        "--summary-rule-file",
+        "",
+        // "--diagnosis-rule-file",
+        // "",
+        // "--output-dir",
+        // ""
+      ]
+    },
+    {
       "name": "Run Unit Tests",
       "type": "python",
       "request": "launch",
