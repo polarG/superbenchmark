@@ -1,0 +1,113 @@
+trigger:
+  branches:
+    include:
+      - main
+      - release/*
+      - azure-pipelines
+# pr:
+#   branches:
+#     include:
+#       - main
+#       - release/*
+
+jobs:
+- job: DockerBuild
+  timeoutInMinutes: 1200
+  pool:
+    vmImage: 'ubuntu-latest'
+  strategy:
+    matrix:
+      cuda12_4:
+        dockerfile: cuda12.4
+        tags: superbench/main:cuda12.4
+        build_args: "NUM_MAKE_JOBS=8"
+      cuda12_2:
+        dockerfile: cuda12.2
+        tags: superbench/main:cuda12.2
+        build_args: "NUM_MAKE_JOBS=8"
+      cuda11_1_1:
+        dockerfile: cuda11.1.1
+        tags: superbench/main:cuda11.1.1,superbench/superbench:latest
+        build_args: "NUM_MAKE_JOBS=8"
+      rocm5_7:
+        dockerfile: rocm5.7.x
+        tags: superbench/main:rocm5.7
+        build_args: "NUM_MAKE_JOBS=64"
+      rocm6_0:
+        dockerfile: rocm6.0.x
+        tags: superbench/main:rocm6.0
+        build_args: "NUM_MAKE_JOBS=64"
+  steps:
+  - task: Checkout@v2
+    inputs:
+      submodules: true
+
+  - script: |
+      mkdir -p /tmp/emptydir
+      for dir in /usr/share/swift /usr/share/dotnet /usr/local/share/powershell /usr/local/share/chromium /usr/local/lib/android /opt/ghc; do
+        sudo rsync -a --delete /tmp/emptydir/ ${dir}
+      done
+      sudo apt-get clean
+      if sudo docker images -q --filter=reference="node" --filter=reference="buildpack-deps" | grep -q .; then
+        sudo docker rmi $(sudo docker images --format "{{.Repository}}:{{.Tag}}" --filter=reference="node" --filter=reference="buildpack-deps")
+      else
+        echo "No Docker images found with the specified references."
+      fi
+      df -h
+    displayName: 'Free disk space'
+
+  - script: |
+      TAGS=$(echo $(Build.Repository.Name) | sed "s/main:/release:${BUILD_SOURCEBRANCHNAME}-/g")
+      if [[ "$(Build.Reason)" == "PullRequest" ]] && [[ "$(System.PullRequest.SourceBranch)" == "release/"* ]]; then
+        TAGS=$(echo $(Build.Repository.Name) | sed "s/main:/release:${SYSTEM_PULLREQUEST_SOURCEBRANCHNAME}-/g")
+      fi
+      if [[ "$(Build.Reason)" == "IndividualCI" ]]; then
+        TAGS=$(echo $(Build.Repository.Name) | sed "s/main:/superbench:${BUILD_SOURCEBRANCHNAME}-/g")
+        GHCR_TAG=$(echo $(Build.Repository.Name) | sed "s#superbench/superbench#ghcr.io/${BUILD_REPOSITORY_NAME}/superbench#g")
+        TAGS="${TAGS},${GHCR_TAG}"
+      fi
+      if [[ "$(Build.Reason)" == "Manual" ]]; then
+        TAGS=$(echo $(Build.Repository.Name) | sed "s/main:/dev:/g")
+      fi
+      DOCKERFILE=dockerfile/$(dockerfile).dockerfile
+
+      BUILD_ARGS=$(build_args)
+      if [[ "$(extra_args)" ]]; then
+        BUILD_ARGS="${BUILD_ARGS} $(extra_args)"
+      fi
+      BUILD_ARGS="${BUILD_ARGS// /'%0A'}"
+
+      CACHE_FROM="type=registry,ref=$(echo $(tags) | cut -d, -f1)"
+      CACHE_TO=""
+      if [[ "$(Build.Reason)" != "PullRequest" ]]; then
+        CACHE_TO="type=inline,mode=max"
+      fi
+
+      echo "##vso[task.setvariable variable=dockerfile]${DOCKERFILE}"
+      echo "##vso[task.setvariable variable=build_args]${BUILD_ARGS}"
+      echo "##vso[task.setvariable variable=tags]${TAGS}"
+      echo "##vso[task.setvariable variable=cache_from]${CACHE_FROM}"
+      echo "##vso[task.setvariable variable=cache_to]${CACHE_TO}"
+    displayName: 'Prepare metadata'
+
+  - script: echo $(build_args)
+    displayName: 'Echo build args'
+
+  - script: echo $(tags)
+    displayName: 'Echo image tag'
+
+  - task: DockerInstaller@0
+    inputs:
+      dockerVersion: '27.3.1'
+    displayName: 'Set up Docker'
+
+  - task: Docker@2
+    inputs:
+      containerRegistry: 'DockerHub'
+      repository: '$(Build.Repository.Name)'
+      # command: 'buildAndPush'
+      command: 'build'
+      Dockerfile: '$(dockerfile)'
+      tags: '$(tags)'
+      arguments: '--build-arg $(build_args) --cache-from $(cache_from) --cache-to $(cache_to)'
+    displayName: 'Build and push'
