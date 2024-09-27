@@ -84,11 +84,11 @@ jobs:
         CACHE_TO="type=inline,mode=max"
       fi
 
-      echo "dockerfile=${DOCKERFILE}"
-      echo "build_args=${BUILD_ARGS}"
-      echo "tags=${TAGS}"
-      echo "cache_from=${CACHE_FROM}"
-      echo "cache_to=${CACHE_TO}"
+      echo "##vso[task.setvariable variable=dockerfile]${DOCKERFILE}"
+      echo "##vso[task.setvariable variable=build_args]${BUILD_ARGS}"
+      echo "##vso[task.setvariable variable=tags]${TAGS}"
+      echo "##vso[task.setvariable variable=cache_from]${CACHE_FROM}"
+      echo "##vso[task.setvariable variable=cache_to]${CACHE_TO}"
     displayName: 'Prepare metadata'
 
   - script: echo $(build_args)
