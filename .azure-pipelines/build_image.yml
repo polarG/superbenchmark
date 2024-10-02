@@ -42,9 +42,10 @@ jobs:
       #   tags: superbench/main:rocm6.0
       #   build_args: "NUM_MAKE_JOBS=64"
   steps:
-  # - task: Checkout@v2
-  #   inputs:
-  #     submodules: true
+  - checkout: self
+    persistCredentials: true
+    clean: true
+    submodules: true
 
   - script: |
       mkdir -p /tmp/emptydir
