@@ -58,7 +58,7 @@ jobs:
     displayName: 'Free disk space'
 
   - script: |
-      TAGS=$(echo $(Build.Repository.Name) | sed "s/main:/release:${BUILD_SOURCEBRANCHNAME}-/g")
+      TAGS=$(tags)
       if [[ "$(Build.Reason)" == "PullRequest" ]] && [[ "$(System.PullRequest.SourceBranch)" == "release/"* ]]; then
         TAGS=$(echo $(Build.Repository.Name) | sed "s/main:/release:${SYSTEM_PULLREQUEST_SOURCEBRANCHNAME}-/g")
       fi
@@ -109,6 +109,6 @@ jobs:
       # command: 'buildAndPush'
       command: 'build'
       Dockerfile: '$(cur_dockerfile)'
-      tags: '$(tags)'
+      tags: '$(cur_tags)'
       arguments: '--build-arg $(cur_build_args) --cache-from $(cur_cache_from) --cache-to $(cur_cache_to)'
     displayName: 'Build and push'
