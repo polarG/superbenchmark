@@ -113,7 +113,7 @@ jobs:
   - task: Docker@2
     inputs:
       containerRegistry: 'DockerHub'
-      repository: '$(Build.Repository.Name)'
+      # repository: '$(Build.Repository.Name)'
       # command: 'buildAndPush'
       command: 'build'
       Dockerfile: '$(cur_dockerfile)'
