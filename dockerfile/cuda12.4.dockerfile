@@ -133,6 +133,7 @@ ADD dockerfile/etc /opt/microsoft/
 
 WORKDIR ${SB_HOME}
 
+RUN echo "Current directory is $(ls -l ${REPO_PATH_IN_HOST})"
 ADD ${REPO_PATH_IN_HOST}/third_party third_party
 RUN make -C third_party cuda_with_msccl
 
