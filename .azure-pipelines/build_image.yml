@@ -76,7 +76,7 @@ jobs:
       # fi
       DOCKERFILE=dockerfile/$(dockerfile).dockerfile
 
-      BUILD_ARGS=$(build_args)
+      BUILD_ARGS="$(build_args) REPO_PATH_IN_HOST=$(Agent.BuildDirectory)/s"
       if [[ "$(extra_args)" ]]; then
         BUILD_ARGS="${BUILD_ARGS} $(extra_args)"
       fi
@@ -114,8 +114,6 @@ jobs:
   - task: Docker@2
     inputs:
       containerRegistry: 'DockerHub'
-      # repository: '$(Build.Repository.Name)'
-      # command: 'buildAndPush'
       command: 'build'
       Dockerfile: '$(cur_dockerfile)'
       tags: '$(cur_tags)'

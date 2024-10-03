@@ -60,6 +60,7 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/* /tmp/*
 
 ARG NUM_MAKE_JOBS=
+ARG REPO_PATH_IN_HOST=
 
 # Install Docker
 ENV DOCKER_VERSION=20.10.8
@@ -132,7 +133,7 @@ ADD dockerfile/etc /opt/microsoft/
 
 WORKDIR ${SB_HOME}
 
-ADD third_party third_party
+ADD ${REPO_PATH_IN_HOST}/third_party third_party
 RUN make -C third_party cuda_with_msccl
 
 ADD . .
