@@ -76,7 +76,7 @@ jobs:
       # fi
       DOCKERFILE=dockerfile/$(dockerfile).dockerfile
 
-      BUILD_ARGS="$(build_args) REPO_PATH_IN_HOST=$(Agent.BuildDirectory)/s"
+      BUILD_ARGS=$(build_args)
       if [[ "$(extra_args)" ]]; then
         BUILD_ARGS="${BUILD_ARGS} $(extra_args)"
       fi
@@ -93,7 +93,6 @@ jobs:
       echo "##vso[task.setvariable variable=cur_tags]${TAGS}"
       echo "##vso[task.setvariable variable=cur_cache_from]${CACHE_FROM}"
       echo "##vso[task.setvariable variable=cur_cache_to]${CACHE_TO}"
-      echo "GITHUB_EVENT_NAME = ${GITHUB_EVENT_NAME}"
       echo "DOCKERFILE = ${DOCKERFILE}"
       echo "TAGS = ${TAGS}"
       echo "CACHE_FROM = ${CACHE_FROM}"
@@ -117,5 +116,5 @@ jobs:
       command: 'build'
       Dockerfile: '$(cur_dockerfile)'
       tags: '$(cur_tags)'
-      arguments: '--build-arg $(cur_build_args) --cache-from $(cur_cache_from) --cache-to $(cur_cache_to)'
+      arguments: '--build-arg $(cur_build_args) --cache-from $(cur_cache_from) --cache-to $(cur_cache_to) --build-arg REPO_PATH_IN_HOST=$(Agent.BuildDirectory)/s'
     displayName: 'Build Docker image'
