@@ -60,7 +60,6 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/* /tmp/*
 
 ARG NUM_MAKE_JOBS=
-ARG REPO_PATH_IN_HOST=
 
 # Install Docker
 ENV DOCKER_VERSION=20.10.8
@@ -129,14 +128,11 @@ RUN echo PATH="$PATH" > /etc/environment && \
     echo "source /opt/hpcx/hpcx-init.sh && hpcx_load" | tee -a /etc/bash.bashrc >> /etc/profile.d/10-hpcx.sh
 
 # Add config files
-RUN mkdir -p /opt/microsoft
-ADD ${REPO_PATH_IN_HOST}/dockerfile/etc /opt/microsoft
+ADD dockerfile/etc /opt/microsoft
 
-RUN mkdir -p ${SB_HOME}
 WORKDIR ${SB_HOME}
 
-RUN echo "Current directory is $(ls -l ${REPO_PATH_IN_HOST})"
-ADD ${REPO_PATH_IN_HOST}/third_party third_party
+ADD third_party third_party
 RUN make -C third_party cuda_with_msccl
 
 ADD . .

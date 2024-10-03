@@ -114,7 +114,8 @@ jobs:
     inputs:
       containerRegistry: 'DockerHub'
       command: 'build'
-      Dockerfile: '$(cur_dockerfile)'
+      Dockerfile: '$(Build.SourcesDirectory)/$(cur_dockerfile)'
+      BuildContext: '$(Build.SourcesDirectory)'
       tags: '$(cur_tags)'
       arguments: '--build-arg $(cur_build_args) --cache-from $(cur_cache_from) --cache-to $(cur_cache_to) --build-arg REPO_PATH_IN_HOST=$(Build.SourcesDirectory)'
     displayName: 'Build Docker image'
