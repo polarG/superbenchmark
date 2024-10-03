@@ -129,8 +129,10 @@ RUN echo PATH="$PATH" > /etc/environment && \
     echo "source /opt/hpcx/hpcx-init.sh && hpcx_load" | tee -a /etc/bash.bashrc >> /etc/profile.d/10-hpcx.sh
 
 # Add config files
-ADD dockerfile/etc /opt/microsoft/
+RUN mkdir -p /opt/microsoft
+ADD ${REPO_PATH_IN_HOST}/dockerfile/etc /opt/microsoft
 
+RUN mkdir -p ${SB_HOME}
 WORKDIR ${SB_HOME}
 
 RUN echo "Current directory is $(ls -l ${REPO_PATH_IN_HOST})"
