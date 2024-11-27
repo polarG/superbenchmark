@@ -16,16 +16,21 @@ ROCM_VER ?= $(shell hipconfig -R | grep -oP '\d+\.\d+\.\d+' || echo "0.0.0")
 
 NUM_MAKE_JOBS ?= $(shell nproc --ignore=2)
 
-.PHONY: all cuda_with_msccl cuda rocm common cuda_cutlass cuda_bandwidthTest cuda_nccl_tests cuda_perftest cuda_msccl rocm_perftest fio rocm_rccl_tests rocm_rocblas rocm_bandwidthTest gpcnet cuda_gpuburn cpu_stream cpu_hpl directx_amf_encoding_latency directx_amd rocm_hipblaslt megatron_lm megatron_deepspeed apex_rocm
+.PHONY: all cuda_with_msccl cuda rocm common cuda_cutlass cuda_bandwidthTest cuda_nccl_tests cuda_perftest cuda_msccl rocm_perftest fio rocm_rccl_tests rocm_rocblas rocm_bandwidthTest gpcnet cuda_gpuburn cpu_stream cpu_hpl directx_amf_encoding_latency directx_amd rocm_hipblaslt megatron_lm megatron_deepspeed apex_rocm nvbandwidth
 
-# Build all targets.
+# Build targets.
 all: cuda rocm
 cuda_with_msccl: cuda cuda_msccl
-cuda: common cuda_cutlass cuda_bandwidthTest cuda_nccl_tests cuda_perftest gpcnet cuda_gpuburn megatron_lm megatron_deepspeed
+cuda: common cuda_cutlass cuda_bandwidthTest cuda_nccl_tests cuda_perftest gpcnet cuda_gpuburn megatron_lm megatron_deepspeed nvbandwidth
 rocm: common rocm_perftest rocm_rccl_tests rocm_rocblas rocm_bandwidthTest rocm_hipblaslt megatron_deepspeed apex_rocm
-cpu: common cpu_perftest
-common: cpu_hpl cpu_stream fio
+cpu: common cpu_perftest cpu_stream
+common: fio
+
+# non aarch64 specific targets
+ifneq ($(shell uname -m), aarch64)
+common: fio cpu_hpl
 directx_amd: directx_amf_encoding_latency
+endif
 
 # Create $(SB_MICRO_PATH)/bin and $(SB_MICRO_PATH)/lib, no error if existing, make parent directories as needed.
 sb_micro_path:
@@ -59,7 +64,7 @@ else
 endif
 	if [ -d cuda-samples ]; then rm -rf cuda-samples; fi
 	git clone -b v$(CUDA_VER) https://github.com/NVIDIA/cuda-samples.git
-	cd ./$(TEST_PATH) && make clean && make TARGET_ARCH=x86_64 SMS=$(ARCHS)
+	cd ./$(TEST_PATH) && make clean && make SMS=$(ARCHS)
 	cp -v ./$(TEST_PATH)/bandwidthTest $(SB_MICRO_PATH)/bin/
 
 # Build nccl-tests from commit 8274cb4 of default branch.
@@ -234,3 +239,8 @@ ifneq (,$(wildcard msccl/tests/msccl-tests-nccl/Makefile))
 	mkdir -p $(SB_MICRO_PATH)/bin/msccl-tests-nccl && \
 	cp -r -v ./msccl/tests/msccl-tests-nccl/build/* $(SB_MICRO_PATH)/bin/msccl-tests-nccl/
 endif
+
+# Build nvbandwidth.
+nvbandwidth: sb_micro_path
+	cd ./nvbandwidth && cmake . && make && cd ..
+	cp -v ./nvbandwidth/nvbandwidth $(SB_MICRO_PATH)/bin
